@@ -92,8 +92,8 @@ public class ActionBarAPI
       // Re-sends the messages every 3 seconds so it doesn't go away from the player's screen.
       while (duration > 40) {
           duration -= 40;
-          final int finalDuration = duration;
-          FoliaScheduler.runAtEntityLater(plugin, player, () -> sendActionBar(player, message), null, finalDuration);
+          final long delayTicks = duration;
+          FoliaScheduler.runAtEntityLater(plugin, player, () -> sendActionBar(player, message), null, delayTicks);
       }
   }
 

@@ -91,14 +91,15 @@ public class FoliaScheduler {
      * Runs a repeating task synchronously. On Folia, this runs on the global region scheduler.
      * @param plugin The plugin instance
      * @param task The task to run
-     * @param delayTicks The initial delay in ticks
+     * @param delayTicks The initial delay in ticks (Folia requires minimum of 1)
      * @param periodTicks The period in ticks
      * @return A ScheduledTaskWrapper that can be used to cancel the task
      */
     public static ScheduledTaskWrapper runTaskTimer(Plugin plugin, Runnable task, long delayTicks, long periodTicks) {
         if (isFolia()) {
+            // Folia requires minimum delay of 1 tick for runAtFixedRate
             io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask =
-                    Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, t -> task.run(), delayTicks > 0 ? delayTicks : 1, periodTicks);
+                    Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, t -> task.run(), Math.max(delayTicks, 1), periodTicks);
             return new ScheduledTaskWrapper(scheduledTask);
         } else {
             int taskId = Bukkit.getScheduler().runTaskTimer(plugin, task, delayTicks, periodTicks).getTaskId();
@@ -117,11 +118,12 @@ public class FoliaScheduler {
     public static ScheduledTaskWrapper runTaskTimerAsync(Plugin plugin, Runnable task, long delayTicks, long periodTicks) {
         if (isFolia()) {
             // Convert ticks to milliseconds (1 tick = 50ms)
-            long delayMs = delayTicks * 50L;
+            // Folia requires minimum delay of 1ms for runAtFixedRate
+            long delayMs = Math.max(delayTicks * 50L, 1);
             long periodMs = periodTicks * 50L;
             io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask =
                     Bukkit.getAsyncScheduler().runAtFixedRate(plugin, t -> task.run(), 
-                            delayMs > 0 ? delayMs : 1, periodMs, TimeUnit.MILLISECONDS);
+                            delayMs, periodMs, TimeUnit.MILLISECONDS);
             return new ScheduledTaskWrapper(scheduledTask);
         } else {
             int taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, task, delayTicks, periodTicks).getTaskId();
