@@ -4,10 +4,10 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import pk.ajneb97.PlayerKits2;
 import pk.ajneb97.api.PlayerKitsAPI;
 import pk.ajneb97.managers.MessagesManager;
+import pk.ajneb97.utils.FoliaScheduler;
 import pk.ajneb97.utils.MiniMessageUtils;
 import pk.ajneb97.utils.OtherUtils;
 
@@ -86,23 +86,14 @@ public class ActionBarAPI
 	  
       if (duration > 0) {
           // Sends empty message at the end of the duration. Allows messages shorter than 3 seconds, ensures precision.
-          new BukkitRunnable() {
-              @Override
-              public void run() {
-            	  sendActionBar(player, "");
-              }
-          }.runTaskLater(plugin, duration + 1);
+          FoliaScheduler.runAtEntityLater(plugin, player, () -> sendActionBar(player, ""), null, duration + 1);
       }
 
       // Re-sends the messages every 3 seconds so it doesn't go away from the player's screen.
       while (duration > 40) {
           duration -= 40;
-          new BukkitRunnable() {
-              @Override
-              public void run() {
-                  sendActionBar(player, message);
-              }
-          }.runTaskLater(plugin, (long) duration);
+          final int finalDuration = duration;
+          FoliaScheduler.runAtEntityLater(plugin, player, () -> sendActionBar(player, message), null, finalDuration);
       }
   }
 
