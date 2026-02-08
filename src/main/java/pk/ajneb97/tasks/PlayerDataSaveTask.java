@@ -1,35 +1,27 @@
 package pk.ajneb97.tasks;
 
-import org.bukkit.scheduler.BukkitRunnable;
 import pk.ajneb97.PlayerKits2;
+import pk.ajneb97.utils.FoliaScheduler;
 
 public class PlayerDataSaveTask {
 
 	private PlayerKits2 plugin;
-	private boolean end;
+	private FoliaScheduler.ScheduledTaskWrapper taskWrapper;
 	public PlayerDataSaveTask(PlayerKits2 plugin) {
 		this.plugin = plugin;
-		this.end = false;
 	}
 	
 	public void end() {
-		end = true;
+		if (taskWrapper != null) {
+			taskWrapper.cancel();
+			taskWrapper = null;
+		}
 	}
 	
 	public void start(int seconds) {
-		long ticks = seconds* 20L;
+		long ticks = seconds * 20L;
 		
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if(end) {
-					this.cancel();
-				}else {
-					execute();
-				}
-			}
-			
-		}.runTaskTimerAsynchronously(plugin, 0L, ticks);
+		taskWrapper = FoliaScheduler.runTaskTimerAsync(plugin, this::execute, 0L, ticks);
 	}
 	
 	public void execute() {
